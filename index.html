@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Set Protocell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #111317;
+            --panel-background: #1C1F26;
+            --border-color: #333842;
+            --text-color: #e1e3e8;
+            --text-secondary-color: #8a919f;
+            --accent-color: #00aaff;
+            --accent-hover-color: #33bbff;
+            --error-color: #ff3b3b;
+            --warning-color: #ffcc00;
+            --success-color: #00e676;
+            --font-family-sans: 'Inter', sans-serif;
+            --font-family-mono: 'Roboto Mono', monospace;
+        }
+        body {
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: var(--font-family-sans);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <h1><span class="red-text">RED SET</span> PROTOCELL</h1>
+            <p>Intelligent Evolving Automated Red Teaming Platform</p>
+            <p class="feature-tagline">Featuring Sniper/Spotter Dual-Agent Technology</p>
+        </div>
+    </header>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
