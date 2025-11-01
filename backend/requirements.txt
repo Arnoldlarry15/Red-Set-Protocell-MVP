@@ -1,0 +1,5 @@
+Flask
+python-dotenv
+pytest
+Flask-Cors
+# TODO: Add google-generativeai or other LLM SDKs when implementing real agents

@@ -1,45 +1,65 @@
-
 # Red Set Protocell
 
-Red Set Protocell is a proof-of-concept AI vs. AI automated red teaming platform. It employs a "Sniper/Spotter" architecture to launch, analyze, and evolve adversarial attacks against a target Large Language Model (LLM), providing a framework for security research and model robustness evaluation.
+Red Set Protocell is a proof-of-concept AI vs. AI automated red teaming platform. It employs a "Sniper/Spotter" architecture to launch, analyze, and evolve adversarial attacks against a target Large Language Model (LLM).
 
-## Core Architecture
+## MVP Dev Setup & Run Instructions
 
-The system is built on a three-agent architecture that operates in a continuous feedback loop:
+This application requires running both a Python backend server and the frontend.
 
-1.  **Sniper Agent (`gemini-2.5-flash`):** The offensive agent. The Sniper's role is to be creative and fast. It takes high-level strategy or a seed prompt and generates a specific, concrete adversarial prompt designed to test the target model's safety, ethics, and policy guardrails.
+### 1. Backend Setup
 
-2.  **Target LLM (Configurable):** This is the model being tested. It operates within a sandboxed environment, using a separate API key if provided, to ensure isolation from the core system agents.
+First, set up and run the Flask server.
 
-3.  **Spotter Agent (`gemini-2.5-pro`):** The defensive analyst. The Spotter observes the entire interaction between the Sniper and the Target. Leveraging a more powerful reasoning model, it analyzes the effectiveness of the Sniper's attack and the Target's response. Its primary output is a new, refined strategy for the Sniper's next attack round, creating an evolutionary loop.
+```bash
+# Navigate to the backend directory
+cd backend
 
-## Features
+# Create and activate a Python virtual environment
+python -m venv venv
+# On Windows: venv\Scripts\activate
+# On macOS/Linux: source venv/bin/activate
 
--   **Single Attack Mode:** Launch a one-off attack based on a seed prompt to get a quick assessment.
--   **Evolving Attack Mode:** Run an automated, multi-round attack where the Spotter's analysis from one round is used to generate a more sophisticated attack in the next.
--   **Sandbox Environment:** The Target LLM can be configured to use a separate API key, creating an API-level sandbox that isolates it from the Sniper and Spotter agents.
--   **Runaway Cost Prevention:** Set a maximum dollar amount for any attack run. The system continuously estimates costs and will automatically halt any attack before it exceeds the defined budget.
--   **Log Analysis:** View a real-time feed of the attacks, responses, and strategic analyses in the UI.
--   **Export Logs:** Download the results of an attack session as a `.csv` file for external analysis and documentation.
+# Install dependencies
+pip install -r requirements.txt
 
-## Setup & Usage
+# Create a .env file from the example.
+# In the project root .env.example, copy the BACKEND variables into a new file: backend/.env
+# Example backend/.env file:
+# RS_API_TOKEN="a-very-secret-token"
+# REDSET_DB_PATH="redset.db"
+# GEMINI_API_KEY="your-key-here"
 
-This application is designed to run in a secure, browser-based environment where the primary Gemini API key is injected as an environment variable (`process.env.API_KEY`).
+# Initialize the SQLite database
+python init_db.py
 
-1.  **Seed Prompt:** Enter your initial attack idea or vector in the "Seed Prompt" text area. This can be a general concept, and the Sniper will refine it into a specific attack.
-2.  **Target Configuration:**
-    -   Select the LLM you wish to test from the dropdown menu.
-    -   (Optional but Recommended) Enter a separate API key for the target model. This enhances the sandbox isolation. If left blank, the system's primary key will be used.
-3.  **Cost & Evolution Control:**
-    -   Set your maximum budget for the entire run in USD.
-    -   Define the number of rounds for an "Evolving Attack."
-4.  **Launch Attack:**
-    -   Click **"Launch Single Attack"** for a single-round test.
-    -   Click **"Start Evolving Attack"** to begin a multi-round, automated red teaming session. You can stop the process at any time.
-5.  **Review & Export:**
-    -   Observe the results in the "Spotter Feed."
-    -   Once the attack is complete, click **"Export Logs"** to save a CSV report.
+# Run the Flask server
+flask run
+```
+The backend will now be running, typically at `http://127.0.0.1:5000`.
+
+### 2. Frontend Setup
+
+Next, set up the frontend environment variables.
+
+1.  In the project's **root directory** (the same level as this README), create a new file named `.env`.
+2.  Copy the `FRONTEND` variables from `.env.example` into your new `.env` file.
+3.  **Crucially, ensure `REACT_APP_RS_API_TOKEN` matches the `RS_API_TOKEN` you set in the backend's `.env` file.**
+
+    ```
+    # Example root .env file:
+    REACT_APP_BACKEND_URL="http://127.0.0.1:5000"
+    REACT_APP_RS_API_TOKEN="a-very-secret-token"
+    ```
+4.  The frontend will now be able to securely communicate with your local backend. You can now serve the frontend using your local development environment.
+
+### Usage Instructions
+
+1.  With both backend and frontend running, open the frontend in your browser.
+2.  In the "Automated Attack" view, enter a seed prompt or use the default.
+3.  Click **"Launch Single Attack"** for a one-round test or **"Start Evolving Attack"** for a multi-round session.
+4.  Observe the results in the "Spotter Feed".
+5.  Click **"Export Logs"** to save a CSV report of the session.
 
 ## Legal & Ethical Disclaimer
 
-This tool is intended for authorized and ethical security research only. By using Red Set Protocell, you agree not to use it for any illegal, malicious, or unauthorized activities. Users are solely responsible for their actions and any consequences that may arise from using this platform.
+This tool is intended for authorized and ethical security research only. Users are solely responsible for their actions.
