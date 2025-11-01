@@ -767,12 +767,12 @@ const App: FC = () => {
                                 <span className="status-item-value">{isEvolving ? currentRound : (isLoading ? 1 : (attackLogs.length > 0 ? attackLogs[0].round : 0))}</span>
                             </div>
                             <div className="status-item">
-                                <span className="status-item-label">Cost</span>
-                                <span className="status-item-value">${estimatedCost.toFixed(4)}</span>
-                            </div>
-                             <div className="status-item">
                                 <span className="status-item-label">API Calls</span>
                                 <span className="status-item-value">{apiCallCount}</span>
+                            </div>
+                            <div className="status-item">
+                                <span className="status-item-label">Cost</span>
+                                <span className="status-item-value">${estimatedCost.toFixed(4)}</span>
                             </div>
                         </div>
 
