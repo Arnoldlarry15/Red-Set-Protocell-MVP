@@ -1,0 +1,29 @@
+{
+    "gpt-4o": {
+        "preferred_strategies": [
+            "Deception",
+            "Roleplay"
+        ],
+        "mutation_intensity": "high",
+        "obfuscation_allowed": true
+    },
+    "gemini-1.5-pro": {
+        "preferred_strategies": [
+            "Jailbreak",
+            "Prompt Injection"
+        ],
+        "mutation_intensity": "medium",
+        "obfuscation_allowed": false
+    },
+    "default": {
+        "preferred_strategies": [
+            "Direct",
+            "Deception",
+            "Roleplay",
+            "Jailbreak",
+            "Prompt Injection"
+        ],
+        "mutation_intensity": "low",
+        "obfuscation_allowed": true
+    }
+}

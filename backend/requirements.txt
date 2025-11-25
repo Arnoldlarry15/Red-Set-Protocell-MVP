@@ -1,0 +1,10 @@
+flask
+requests
+python-dotenv
+transformers
+torch
+scikit-learn
+nltk
+openai
+numpy
+flask-login
