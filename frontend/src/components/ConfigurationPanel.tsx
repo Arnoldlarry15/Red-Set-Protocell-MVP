@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface ConfigurationPanelProps {
-    onStart: (prompt: string, strategy: string, model: string, apiKey: string) => void;
+    onStart: (prompt: string, strategy: string, model: string, apiKey: string, provider: string, baseUrl: string) => void;
     onStop?: () => void;
     onReset?: () => void;
     isRunning: boolean;
@@ -14,6 +14,8 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
     const [strategy, setStrategy] = useState('direct');
     const [model, setModel] = useState('gpt-4o');
     const [apiKey, setApiKey] = useState('');
+    const [provider, setProvider] = useState('openai');
+    const [baseUrl, setBaseUrl] = useState('http://localhost:11434/v1');
     const [hasSystemKey, setHasSystemKey] = useState(false);
 
     useEffect(() => {
@@ -34,26 +36,28 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
         { id: 'gpt-4o', name: 'GPT-4o' },
         { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
         { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
+        { id: 'llama3', name: 'Llama 3 (Local)' },
+        { id: 'mistral', name: 'Mistral (Local)' },
     ];
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!hasSystemKey && !apiKey) {
+        if (provider === 'openai' && !hasSystemKey && !apiKey) {
             alert("Please enter an OpenAI API Key");
             return;
         }
-        if (apiKey && !apiKey.startsWith("sk-")) {
+        if (provider === 'openai' && apiKey && !apiKey.startsWith("sk-")) {
             alert("Invalid API Key format");
             return;
         }
-        onStart(prompt, strategy, model, apiKey);
+        onStart(prompt, strategy, model, apiKey, provider, baseUrl);
     };
 
     return (
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-bold font-mono text-white/90 uppercase tracking-wider">Configuration</h2>
-                {hasSystemKey && (
+                {hasSystemKey && provider === 'openai' && (
                     <div className="px-2 py-1 bg-green-500/10 border border-green-500/30 rounded-md text-[10px] font-mono text-green-400 flex items-center gap-1.5">
                         <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
                         SYSTEM KEY
@@ -62,19 +66,62 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                {/* API Key */}
+                {/* Provider Selection */}
                 <div>
-                    <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">
-                        API Key {hasSystemKey && <span className="text-white/20">(Optional)</span>}
-                    </label>
-                    <input
-                        type="password"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder-white/20"
-                        placeholder={hasSystemKey ? "Using system key..." : "sk-..."}
-                    />
+                    <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Provider</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setProvider('openai')}
+                            className={`px-3 py-2 rounded-lg text-xs font-mono transition-all border ${provider === 'openai'
+                                    ? 'bg-red-600/20 border-red-500 text-white'
+                                    : 'bg-black/40 border-white/10 text-white/40 hover:bg-white/5'
+                                }`}
+                        >
+                            OpenAI
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setProvider('local')}
+                            className={`px-3 py-2 rounded-lg text-xs font-mono transition-all border ${provider === 'local'
+                                    ? 'bg-red-600/20 border-red-500 text-white'
+                                    : 'bg-black/40 border-white/10 text-white/40 hover:bg-white/5'
+                                }`}
+                        >
+                            Local (Ollama)
+                        </button>
+                    </div>
                 </div>
+
+                {/* API Key (OpenAI Only) */}
+                {provider === 'openai' && (
+                    <div>
+                        <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">
+                            API Key {hasSystemKey && <span className="text-white/20">(Optional)</span>}
+                        </label>
+                        <input
+                            type="password"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder-white/20"
+                            placeholder={hasSystemKey ? "Using system key..." : "sk-..."}
+                        />
+                    </div>
+                )}
+
+                {/* Base URL (Local Only) */}
+                {provider === 'local' && (
+                    <div>
+                        <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Base URL</label>
+                        <input
+                            type="text"
+                            value={baseUrl}
+                            onChange={(e) => setBaseUrl(e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder-white/20"
+                            placeholder="http://localhost:11434/v1"
+                        />
+                    </div>
+                )}
 
                 {/* Model */}
                 <div>

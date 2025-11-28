@@ -43,7 +43,7 @@ Thumbs.db
 # Project Specific
 backend/instance/
 backend/audit.log
-backend/red_set.db
+backend/redset.db
 frontend/dist/
 frontend/.vite/
 

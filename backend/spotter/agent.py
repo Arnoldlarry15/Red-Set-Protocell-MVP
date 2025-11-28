@@ -2,12 +2,12 @@ from .cvss import CVSSCalculator
 from .remediation import RemediationEngine
 
 class SpotterAgent:
-    def __init__(self, api_key=None, model="gpt-4o"):
+    def __init__(self, api_key=None, model="gpt-4o", base_url=None):
         self.role = "Spotter"
         self.client = None
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if self.api_key:
-            self.client = OpenAI(api_key=self.api_key)
+        if self.api_key or base_url:
+            self.client = OpenAI(api_key=self.api_key or "sk-dummy", base_url=base_url)
         self.model = model
         
         # Initialize Pipeline Components

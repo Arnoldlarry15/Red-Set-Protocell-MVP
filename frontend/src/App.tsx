@@ -53,13 +53,13 @@ const AppContent: React.FC = () => {
     return () => clearInterval(interval);
   }, [sessionId, isAuthenticated]);
 
-  const handleStart = async (prompt: string, strategy: string, model: string, apiKey: string) => {
+  const handleStart = async (prompt: string, strategy: string, model: string, apiKey: string, provider: string, baseUrl: string) => {
     try {
       const res = await fetch('http://localhost:5000/api/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ prompt, strategy, model, api_key: apiKey }),
+        body: JSON.stringify({ prompt, strategy, model, api_key: apiKey, provider, base_url: baseUrl }),
       });
       const data = await res.json();
       if (data.session_id) {

@@ -7,12 +7,12 @@ from .mutator import GeneticMutator, Obfuscator
 from backend.compliance.audit import AuditLogger
 
 class SniperAgent:
-    def __init__(self, api_key=None, model="gpt-4o"):
+    def __init__(self, api_key=None, model="gpt-4o", base_url=None):
         self.role = "Sniper"
         self.client = None
         self.model = model
-        if api_key:
-            self.client = OpenAI(api_key=api_key)
+        if api_key or base_url:
+            self.client = OpenAI(api_key=api_key or "sk-dummy", base_url=base_url)
             
         # Load Model Profiles
         self.profiles = self._load_profiles()

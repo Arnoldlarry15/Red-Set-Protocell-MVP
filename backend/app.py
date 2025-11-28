@@ -41,7 +41,7 @@ with app.app_context():
     db.create_all()
 
 class SessionThread(threading.Thread):
-    def __init__(self, session_id, initial_prompt, iterations, strategy, model, api_key, app):
+    def __init__(self, session_id, initial_prompt, iterations, strategy, model, api_key, base_url, app):
         super().__init__()
         self.session_id = session_id
         self.initial_prompt = initial_prompt
@@ -49,14 +49,15 @@ class SessionThread(threading.Thread):
         self.strategy = strategy
         self.model = model
         self.api_key = api_key
+        self.base_url = base_url
         self.app = app 
         self.audit = AuditLogger()
 
     def run(self):
         with self.app.app_context():
             # Initialize agents with real credentials
-            self.sniper = SniperAgent(api_key=self.api_key, model=self.model)
-            self.spotter = SpotterAgent(api_key=self.api_key, model=self.model)
+            self.sniper = SniperAgent(api_key=self.api_key, model=self.model, base_url=self.base_url)
+            self.spotter = SpotterAgent(api_key=self.api_key, model=self.model, base_url=self.base_url)
 
             current_prompt = self.initial_prompt
             feedback = None
@@ -243,17 +244,21 @@ def start_session():
     
     # Security: Check for System Key if User Key is missing
     api_key = data.get("api_key")
-    if not api_key:
+    provider = data.get("provider", "openai")
+    base_url = data.get("base_url")
+
+    # If using OpenAI and no key provided, try system key
+    if provider == "openai" and not api_key:
         api_key = os.getenv("OPENAI_API_KEY")
     
     model = data.get("model", "gpt-4o")
     
-    if not api_key:
-        return jsonify({"error": "API Key is required (User or System)"}), 400
+    if provider == "openai" and not api_key:
+        return jsonify({"error": "API Key is required for OpenAI provider"}), 400
         
-    # Security: Validate API Key Format
-    if not re.match(API_KEY_PATTERN, api_key):
-         if not api_key.startswith("sk-"): # Simple check to avoid over-optimizing regex for now
+    # Security: Validate API Key Format (only for OpenAI)
+    if provider == "openai" and not re.match(API_KEY_PATTERN, api_key):
+         if not api_key.startswith("sk-"): 
              return jsonify({"error": "Invalid API Key format"}), 400
     
     # Create new session in DB
@@ -261,7 +266,9 @@ def start_session():
         id=session_id,
         initial_prompt=data.get("prompt", "Test prompt"),
         iterations=int(data.get("iterations", 5)),
-        status="running"
+        status="running",
+        model=model,
+        strategy=data.get("strategy", "Direct")
     )
     db.session.add(new_session)
     
@@ -276,9 +283,10 @@ def start_session():
         session_id, 
         new_session.initial_prompt, 
         new_session.iterations,
-        data.get("strategy", "Direct"),
+        new_session.strategy,
         model,
         api_key,
+        base_url,
         app
     )
     
