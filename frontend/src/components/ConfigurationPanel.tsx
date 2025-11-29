@@ -54,11 +54,11 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
     };
 
     return (
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
+        <div className="glass-panel rounded-2xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-sm font-bold font-mono text-white/90 uppercase tracking-wider">Configuration</h2>
+                <h2 className="text-sm font-bold font-mono gradient-text uppercase tracking-wider">Configuration</h2>
                 {hasSystemKey && provider === 'openai' && (
-                    <div className="px-2 py-1 bg-green-500/10 border border-green-500/30 rounded-md text-[10px] font-mono text-green-400 flex items-center gap-1.5">
+                    <div className="glass-panel px-3 py-1.5 rounded-lg text-[10px] font-mono text-green-400 flex items-center gap-1.5 glow-purple">
                         <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
                         SYSTEM KEY
                     </div>
@@ -68,14 +68,14 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Provider Selection */}
                 <div>
-                    <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Provider</label>
+                    <label className="block text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">Provider</label>
                     <div className="grid grid-cols-2 gap-2">
                         <button
                             type="button"
                             onClick={() => setProvider('openai')}
-                            className={`px-3 py-2 rounded-lg text-xs font-mono transition-all border ${provider === 'openai'
-                                    ? 'bg-red-600/20 border-red-500 text-white'
-                                    : 'bg-black/40 border-white/10 text-white/40 hover:bg-white/5'
+                            className={`px-3 py-2.5 rounded-xl text-xs font-mono transition-all border ${provider === 'openai'
+                                ? 'glass-panel border-purple-500/50 text-white glow-purple'
+                                : 'border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
                                 }`}
                         >
                             OpenAI
@@ -83,9 +83,9 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
                         <button
                             type="button"
                             onClick={() => setProvider('local')}
-                            className={`px-3 py-2 rounded-lg text-xs font-mono transition-all border ${provider === 'local'
-                                    ? 'bg-red-600/20 border-red-500 text-white'
-                                    : 'bg-black/40 border-white/10 text-white/40 hover:bg-white/5'
+                            className={`px-3 py-2.5 rounded-xl text-xs font-mono transition-all border ${provider === 'local'
+                                ? 'glass-panel border-cyan-500/50 text-white glow-cyan'
+                                : 'border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
                                 }`}
                         >
                             Local (Ollama)
@@ -96,14 +96,14 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
                 {/* API Key (OpenAI Only) */}
                 {provider === 'openai' && (
                     <div>
-                        <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">
-                            API Key {hasSystemKey && <span className="text-white/20">(Optional)</span>}
+                        <label className="block text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">
+                            API Key {hasSystemKey && <span className="text-white/30">(Optional)</span>}
                         </label>
                         <input
                             type="password"
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder-white/20"
+                            className="w-full glass-panel border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-purple-500/50 focus:glow-purple transition-all placeholder-white/20"
                             placeholder={hasSystemKey ? "Using system key..." : "sk-..."}
                         />
                     </div>
@@ -112,12 +112,12 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
                 {/* Base URL (Local Only) */}
                 {provider === 'local' && (
                     <div>
-                        <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Base URL</label>
+                        <label className="block text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">Base URL</label>
                         <input
                             type="text"
                             value={baseUrl}
                             onChange={(e) => setBaseUrl(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder-white/20"
+                            className="w-full glass-panel border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-cyan-500/50 focus:glow-cyan transition-all placeholder-white/20"
                             placeholder="http://localhost:11434/v1"
                         />
                     </div>
@@ -125,30 +125,35 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
 
                 {/* Model */}
                 <div>
-                    <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Target Model</label>
+                    <label className="block text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">
+                        Target Model (System Under Test)
+                    </label>
                     <select
                         value={model}
                         onChange={(e) => setModel(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all appearance-none cursor-pointer"
+                        className="w-full glass-panel border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-purple-500/50 focus:glow-purple transition-all appearance-none cursor-pointer bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=')] bg-[length:12px] bg-[right_1rem_center] bg-no-repeat"
                     >
                         {models.map((m) => (
-                            <option key={m.id} value={m.id} className="bg-black text-white">
+                            <option key={m.id} value={m.id} className="bg-[#0f0f23] text-white">
                                 {m.name}
                             </option>
                         ))}
                     </select>
+                    <p className="text-[10px] text-white/30 mt-1.5 font-mono">
+                        * Sniper: Gemini 2.5 Flash | Spotter: Gemini 2.5 Pro
+                    </p>
                 </div>
 
                 {/* Strategy */}
                 <div>
-                    <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Attack Strategy</label>
+                    <label className="block text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">Attack Strategy</label>
                     <select
                         value={strategy}
                         onChange={(e) => setStrategy(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all appearance-none cursor-pointer"
+                        className="w-full glass-panel border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-purple-500/50 focus:glow-purple transition-all appearance-none cursor-pointer bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw2IDZMMTEgMSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=')] bg-[length:12px] bg-[right_1rem_center] bg-no-repeat"
                     >
                         {strategies.map((s) => (
-                            <option key={s.id} value={s.id} className="bg-black text-white">
+                            <option key={s.id} value={s.id} className="bg-[#0f0f23] text-white">
                                 {s.name}
                             </option>
                         ))}
@@ -157,21 +162,21 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
 
                 {/* Prompt */}
                 <div>
-                    <label className="block text-[10px] font-mono text-white/40 uppercase tracking-wider mb-2">Prompt Seed</label>
+                    <label className="block text-[10px] font-mono text-white/50 uppercase tracking-wider mb-2">Prompt Seed</label>
                     <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        className="w-full h-24 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all resize-none"
+                        className="w-full h-24 glass-panel border border-white/10 rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-purple-500/50 focus:glow-purple transition-all resize-none placeholder-white/20"
                         placeholder="Enter attack prompt..."
                     />
                 </div>
 
                 {/* Controls */}
-                <div className="pt-4 border-t border-white/5 space-y-2">
+                <div className="pt-4 border-t border-white/10 space-y-2">
                     <button
                         type="submit"
                         disabled={isRunning}
-                        className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white px-4 py-3 rounded-lg font-mono font-bold text-sm tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/20"
+                        className="w-full btn-gradient text-white px-4 py-3.5 rounded-xl font-mono font-bold text-sm tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl"
                     >
                         {isRunning ? (
                             <span className="flex items-center justify-center gap-2">
@@ -188,7 +193,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
                             type="button"
                             onClick={onStop}
                             disabled={!isRunning}
-                            className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 px-3 py-2 rounded-lg font-mono text-xs transition-all disabled:opacity-30"
+                            className="glass-panel border border-white/10 text-white/70 px-3 py-2.5 rounded-xl font-mono text-xs transition-all disabled:opacity-30 hover:border-white/20 hover:text-white"
                         >
                             STOP
                         </button>
@@ -196,7 +201,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ onStart, onStop
                             type="button"
                             onClick={onReset}
                             disabled={isRunning}
-                            className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 px-3 py-2 rounded-lg font-mono text-xs transition-all disabled:opacity-30"
+                            className="glass-panel border border-white/10 text-white/70 px-3 py-2.5 rounded-xl font-mono text-xs transition-all disabled:opacity-30 hover:border-white/20 hover:text-white"
                         >
                             RESET
                         </button>

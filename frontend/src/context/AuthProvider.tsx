@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const checkAuth = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/check-auth');
+            const res = await fetch('http://localhost:5000/api/check-auth', { credentials: 'include' });
             if (res.ok) {
                 setIsAuthenticated(true);
             } else {
@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const res = await fetch('http://localhost:5000/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ password }),
             });
 
@@ -61,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = async () => {
         try {
-            await fetch('http://localhost:5000/api/logout', { method: 'POST' });
+            await fetch('http://localhost:5000/api/logout', { method: 'POST', credentials: 'include' });
             setIsAuthenticated(false);
         } catch (error) {
             console.error("Logout failed", error);

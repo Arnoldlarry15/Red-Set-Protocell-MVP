@@ -7,26 +7,22 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
-            {/* Ambient Background Effects */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-red-600/5 rounded-full blur-[120px]" />
-                <div className="absolute inset-0 opacity-[0.03]"
-                    style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-            </div>
-
-            {/* Header */}
-            <header className="relative z-10 border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0">
+        <div className="min-h-screen text-white font-sans">
+            {/* Header with Glassmorphism */}
+            <header className="glass-panel relative z-10 border-b border-white/5 sticky top-0">
                 <div className="max-w-[1800px] mx-auto px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <img src={logo} alt="Red Set Protocell" className="h-32 w-auto" />
+                        <img src={logo} alt="Red Set Protocell" className="h-32 w-auto drop-shadow-2xl" />
+                        <div className="flex flex-col">
+                            <h1 className="text-2xl font-bold gradient-text tracking-tight">RED SET PROTOCELL</h1>
+                            <p className="text-xs text-white/40 font-mono">AI Security Testing Platform</p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-sm flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-xs font-mono text-white/60">OPERATIONAL</span>
+                        <div className="glass-panel px-4 py-2 rounded-full flex items-center gap-2 glow-purple">
+                            <div className="w-1.5 h-1.5 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full animate-pulse" />
+                            <span className="text-xs font-mono text-white/80">OPERATIONAL</span>
                         </div>
                     </div>
                 </div>

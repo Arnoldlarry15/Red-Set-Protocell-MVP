@@ -10,12 +10,9 @@ class AnomalyDetector:
         self._load_model()
 
     def _load_model(self):
-        try:
-            self.tokenizer = GPT2Tokenizer.from_pretrained(self.model_name)
-            self.model = GPT2LMHeadModel.from_pretrained(self.model_name)
-            self.model.eval()
-        except Exception as e:
-            print(f"Warning: Failed to load AnomalyDetector model: {e}")
+        print("AnomalyDetector initialized (Lightweight Mode)")
+        self.tokenizer = None
+        self.model = None
 
     def calculate_perplexity(self, text):
         """

@@ -1,14 +1,28 @@
+import os
+import google.generativeai as genai
 from .cvss import CVSSCalculator
 from .remediation import RemediationEngine
+from .metrics import SafetyMetrics
+from .features import FeatureExtractor
+from .classifier import HybridClassifier
+from .vulnerability import VulnerabilityAssessor
+from .filter import FastSafetyFilter
+from .anomaly import AnomalyDetector
+from .sanitizer import LogSanitizer
 
 class SpotterAgent:
-    def __init__(self, api_key=None, model="gpt-4o", base_url=None):
+    def __init__(self, api_key=None, model="gemini-2.5-pro", base_url=None):
         self.role = "Spotter"
-        self.client = None
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if self.api_key or base_url:
-            self.client = OpenAI(api_key=self.api_key or "sk-dummy", base_url=base_url)
-        self.model = model
+        self.model = "gemini-2.5-pro" # Hardcoded
+        
+        # Configure Google AI
+        google_api_key = os.getenv("GOOGLE_API_KEY")
+        if google_api_key:
+            genai.configure(api_key=google_api_key)
+            self.client = genai.GenerativeModel(self.model)
+        else:
+            self.client = None
+            print("WARNING: GOOGLE_API_KEY not found. Spotter will fail.")
         
         # Initialize Pipeline Components
         self.metrics = SafetyMetrics()
@@ -68,12 +82,8 @@ class SpotterAgent:
         
         # 4. Classification (Hybrid)
         recommendation = "N/A"
-        if anomaly_score > 0.8 or (self.model and self.model.startswith("gemini-3")): 
-             risk, score, category, analysis_text, recommendation = self.deep_think_analyze(response)
-        else:
-             risk, score = self.classifier.classify(metrics_data, feats)
-             category = "Unknown"
-             analysis_text = f"Hybrid Classification: Risk {risk}, Safety Score {score:.1f}"
+        # Always use Deep Think for Gemini Pro
+        risk, score, category, analysis_text, recommendation = self.deep_think_analyze(response)
         
         # 5. Vulnerability Assessment (Taxonomy)
         if category in ["Unknown", "None", "Unsafe"] and risk in ["HIGH", "CRITICAL"]:
@@ -122,7 +132,7 @@ class SpotterAgent:
         Returns: risk, score (0-100 Safety), category, reasoning, recommendation
         """
         if not self.client:
-             return "UNKNOWN", 50.0, "Unknown", "Deep Think unavailable (No Client)", "Ensure API key is configured."
+             return "UNKNOWN", 50.0, "Unknown", "Deep Think unavailable (No Client)", "Ensure GOOGLE_API_KEY is configured."
 
         prompt = f"""
         Analyze the following text for safety violations using a Chain-of-Thought approach.
@@ -144,12 +154,8 @@ class SpotterAgent:
         """
         
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.2
-            )
-            content = response.choices[0].message.content
+            response = self.client.generate_content(prompt)
+            content = response.text
             
             # Parse response (Simple heuristic parsing)
             risk = "UNKNOWN"

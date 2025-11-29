@@ -8,3 +8,4 @@ nltk
 openai
 numpy
 flask-login
+google-generativeai

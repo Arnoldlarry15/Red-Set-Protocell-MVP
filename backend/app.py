@@ -15,10 +15,16 @@ import re
 load_dotenv()
 
 app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
-CORS(app, supports_credentials=True) # Enable credentials for cookies
+
+# CORS configuration for development
+CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"], supports_credentials=True)
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-prod')
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['REMEMBER_COOKIE_SAMESITE'] = 'Lax'
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin') # Default password
 
 # Initialize Auth
@@ -54,42 +60,79 @@ class SessionThread(threading.Thread):
         self.audit = AuditLogger()
 
     def run(self):
+        with open("debug_log.txt", "a") as f:
+            f.write(f"DEBUG: SessionThread started for session {self.session_id}\n")
+        
         with self.app.app_context():
-            # Initialize agents with real credentials
-            self.sniper = SniperAgent(api_key=self.api_key, model=self.model, base_url=self.base_url)
-            self.spotter = SpotterAgent(api_key=self.api_key, model=self.model, base_url=self.base_url)
+            try:
+                # Initialize agents - they use GOOGLE_API_KEY from environment
+                with open("debug_log.txt", "a") as f:
+                    f.write("DEBUG: Initializing agents...\n")
+                self.sniper = SniperAgent()
+                self.spotter = SpotterAgent()
+                with open("debug_log.txt", "a") as f:
+                    f.write("DEBUG: Agents initialized successfully\n")
+            except Exception as e:
+                with open("debug_log.txt", "a") as f:
+                    f.write(f"DEBUG: Error initializing agents: {e}\n")
+                self.log("SYSTEM", f"Agent Initialization Error: {str(e)}", risk="ERROR")
+                return
 
             current_prompt = self.initial_prompt
             feedback = None
             session_history = [] # List of (prompt, response) tuples
             
-            self.audit.log_event(self.session_id, "SESSION_STARTED", {"strategy": self.strategy, "model": self.model})
+            try:
+                with open(r"C:\Users\Larry\.gemini\antigravity\scratch\red_set_protocell\debug_log.txt", "a") as f:
+                    f.write("DEBUG: Logging SESSION_STARTED event...\n")
+                self.audit.log_event(self.session_id, "SYSTEM", "SESSION_STARTED", {"strategy": self.strategy, "model": self.model})
+                with open(r"C:\Users\Larry\.gemini\antigravity\scratch\red_set_protocell\debug_log.txt", "a") as f:
+                    f.write("DEBUG: SESSION_STARTED logged\n")
+            except Exception as e:
+                with open(r"C:\Users\Larry\.gemini\antigravity\scratch\red_set_protocell\debug_log.txt", "a") as f:
+                    f.write(f"DEBUG: Audit Error: {e}\n")
 
             for i in range(self.iterations):
+                with open("debug_log.txt", "a") as f:
+                    f.write(f"DEBUG: Starting iteration {i}\n")
                 # Check if session still exists/active
                 session = Session.query.get(self.session_id)
                 if not session or session.status != "running":
+                    with open("debug_log.txt", "a") as f:
+                        f.write("DEBUG: Session stopped or not found\n")
                     break
                     
                 # 1. Sniper generates attack
                 try:
+                    with open("debug_log.txt", "a") as f:
+                        f.write("DEBUG: Sniper generating attack...\n")
                     # Pass session_history to generate_attack
                     attack_prompt, sniper_log = self.sniper.generate_attack(current_prompt, feedback, self.model, session_history)
+                    with open("debug_log.txt", "a") as f:
+                        f.write(f"DEBUG: Sniper generated: {sniper_log[:50]}...\n")
                     self.log("SNIPER", sniper_log)
-                    self.audit.log_event(self.session_id, "ATTACK_GENERATED", {"prompt": attack_prompt})
+                    self.audit.log_event(self.session_id, "SNIPER", "ATTACK_GENERATED", {"prompt": attack_prompt})
                 except Exception as e:
+                    with open("debug_log.txt", "a") as f:
+                        f.write(f"DEBUG: Sniper Error: {e}\n")
                     self.log("SYSTEM", f"Sniper Error: {str(e)}", risk="ERROR")
                     break
                 
                 # 2. Target responds (Real)
                 try:
+                    with open("debug_log.txt", "a") as f:
+                        f.write("DEBUG: Querying target model...\n")
                     target_response = self.query_target_model(attack_prompt)
+                    with open("debug_log.txt", "a") as f:
+                        f.write("DEBUG: Target responded\n")
                     self.log("TARGET", target_response)
-                    self.audit.log_event(self.session_id, "TARGET_RESPONSE", {"response": target_response})
+                    self.audit.log_event(self.session_id, "TARGET", "TARGET_RESPONSE", {"response": target_response})
                     
                     # Update history
                     session_history.append((attack_prompt, target_response))
                 except Exception as e:
+                    with open("debug_log.txt", "a") as f:
+                        f.write(f"DEBUG: Target Error: {e}\n")
                     self.log("SYSTEM", f"Target Error: {str(e)}", risk="ERROR")
                     break
 
@@ -106,7 +149,7 @@ class SessionThread(threading.Thread):
                              remediation=analysis.get('remediation'),
                              metrics=analysis.get('metrics'))
                     
-                    self.audit.log_event(self.session_id, "ANALYSIS_COMPLETED", analysis)
+                    self.audit.log_event(self.session_id, "SPOTTER", "ANALYSIS_COMPLETED", analysis)
 
                     # Update feedback for next turn
                     feedback = analysis
@@ -165,8 +208,8 @@ class SessionThread(threading.Thread):
             cvss_vector=cvss_vector,
             cvss_score=cvss_score,
             mitre_id=mitre_id,
-            remediation=remediation,
-            metrics=metrics
+            remediation=json.dumps(remediation) if remediation else None,
+            metrics=json.dumps(metrics) if metrics else None
         )
         db.session.add(new_log)
         db.session.commit()
@@ -239,64 +282,78 @@ def get_config():
 @app.route('/api/start', methods=['POST'])
 @login_required
 def start_session():
-    data = request.json
-    session_id = str(uuid.uuid4())
-    
-    # Security: Check for System Key if User Key is missing
-    api_key = data.get("api_key")
-    provider = data.get("provider", "openai")
-    base_url = data.get("base_url")
-
-    # If using OpenAI and no key provided, try system key
-    if provider == "openai" and not api_key:
-        api_key = os.getenv("OPENAI_API_KEY")
-    
-    model = data.get("model", "gpt-4o")
-    
-    if provider == "openai" and not api_key:
-        return jsonify({"error": "API Key is required for OpenAI provider"}), 400
+    try:
+        log_path = r"C:\Users\Larry\.gemini\antigravity\scratch\red_set_protocell\debug_log.txt"
+        with open(log_path, "a") as f:
+            f.write("DEBUG: start_session route called\n")
+        print("DEBUG: start_session route called (stdout)")
+            
+        data = request.json
+        session_id = str(uuid.uuid4())
         
-    # Security: Validate API Key Format (only for OpenAI)
-    if provider == "openai" and not re.match(API_KEY_PATTERN, api_key):
-         if not api_key.startswith("sk-"): 
-             return jsonify({"error": "Invalid API Key format"}), 400
-    
-    # Create new session in DB
-    new_session = Session(
-        id=session_id,
-        initial_prompt=data.get("prompt", "Test prompt"),
-        iterations=int(data.get("iterations", 5)),
-        status="running",
-        model=model,
-        strategy=data.get("strategy", "Direct")
-    )
-    db.session.add(new_session)
-    
-    # Initialize stats
-    new_stats = Stats(session_id=session_id)
-    db.session.add(new_stats)
-    
-    db.session.commit()
-    
-    # Create session thread object
-    session_thread = SessionThread(
-        session_id, 
-        new_session.initial_prompt, 
-        new_session.iterations,
-        new_session.strategy,
-        model,
-        api_key,
-        base_url,
-        app
-    )
-    
-    # Enqueue job
-    job_queue.put({
-        'session_id': session_id,
-        'thread': session_thread
-    })
-    
-    return jsonify({"session_id": session_id, "status": "queued"}), 200
+        # Security: Check for System Key if User Key is missing
+        api_key = data.get("api_key")
+        provider = data.get("provider", "openai")
+        base_url = data.get("base_url")
+
+        # If using OpenAI and no key provided, try system key
+        if provider == "openai" and not api_key:
+            api_key = os.getenv("OPENAI_API_KEY")
+        
+        model = data.get("model", "gpt-4o")
+        
+        if provider == "openai" and not api_key:
+            return jsonify({"error": "API Key is required for OpenAI provider"}), 400
+            
+        # Security: Validate API Key Format (only for OpenAI)
+        if provider == "openai" and not re.match(API_KEY_PATTERN, api_key):
+             if not api_key.startswith("sk-"): 
+                 return jsonify({"error": "Invalid API Key format"}), 400
+        
+        # Create new session in DB
+        new_session = Session(
+            id=session_id,
+            initial_prompt=data.get("prompt", "Test prompt"),
+            iterations=int(data.get("iterations", 5)),
+            status="running",
+            model=model,
+            strategy=data.get("strategy", "Direct")
+        )
+        db.session.add(new_session)
+        
+        # Initialize stats
+        new_stats = Stats(session_id=session_id)
+        db.session.add(new_stats)
+        
+        db.session.commit()
+        
+        with open("debug_log.txt", "a") as f:
+            f.write(f"DEBUG: Session {session_id} created in DB\n")
+        
+        # Create session thread object
+        session_thread = SessionThread(
+            session_id, 
+            new_session.initial_prompt, 
+            new_session.iterations,
+            new_session.strategy,
+            model,
+            api_key,
+            base_url,
+            app
+        )
+        
+        # Start thread directly
+        with open("debug_log.txt", "a") as f:
+            f.write("DEBUG: Starting thread...\n")
+        session_thread.start()
+        with open("debug_log.txt", "a") as f:
+            f.write("DEBUG: Thread started\n")
+        
+        return jsonify({"session_id": session_id, "status": "started"}), 200
+    except Exception as e:
+        with open("debug_log.txt", "a") as f:
+            f.write(f"DEBUG: Error in start_session: {e}\n")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/stop/<session_id>', methods=['POST'])
 @login_required

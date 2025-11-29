@@ -40,10 +40,10 @@ const AppContent: React.FC = () => {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/logs/${sessionId}`, { credentials: 'include' });
+        const res = await fetch(`http://localhost:5000/api/session/${sessionId}`, { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
-          setLogs(data.logs);
+          setLogs(data.logs || []);
         }
       } catch (e) {
         console.error("Failed to fetch logs", e);
